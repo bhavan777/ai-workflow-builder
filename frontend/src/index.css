@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Markdown content styles */
+.markdown-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #1e293b;
+}
+
+.dark .markdown-content h1 {
+  color: #f1f5f9;
+}
+
+.markdown-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #334155;
+}
+
+.dark .markdown-content h2 {
+  color: #e2e8f0;
+}
+
+.markdown-content p {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-content code {
+  background-color: #f1f5f9;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.dark .markdown-content code {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+.markdown-content pre {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 0.75rem;
+}
+
+.dark .markdown-content pre {
+  background-color: #0f172a;
+}
+
+.markdown-content pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dark .markdown-content strong {
+  color: #f1f5f9;
+}
+
+/* Animation for typing indicator */
+@keyframes bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
+.typing-dot {
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Neon card-shaped glow with smooth color transitions */
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-glow {
+  from {
+    --glow-angle: 0deg;
+  }
+  to {
+    --glow-angle: 360deg;
+  }
+}
+
+/* Card-shaped glow - blue, indigo, pink blend */
+.neon-glow-wrapper {
+  position: absolute;
+  inset: -4px;
+  border-radius: 1.25rem;
+  z-index: -1;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--glow-angle),
+    rgba(59, 130, 246, 0.5) 0deg,       /* Blue */
+    rgba(99, 102, 241, 0.5) 120deg,     /* Indigo */
+    rgba(236, 72, 153, 0.5) 240deg,     /* Pink */
+    rgba(59, 130, 246, 0.5) 360deg      /* Back to Blue */
+  );
+  filter: blur(18px);
+  opacity: 0.8;
+  animation: rotate-glow 8s linear infinite;
+}
+
+/* Dark mode - slightly more visible */
+.dark .neon-glow-wrapper {
+  background: conic-gradient(
+    from var(--glow-angle),
+    rgba(96, 165, 250, 0.6) 0deg,       /* Blue */
+    rgba(129, 140, 248, 0.6) 120deg,    /* Indigo */
+    rgba(244, 114, 182, 0.6) 240deg,    /* Pink */
+    rgba(96, 165, 250, 0.6) 360deg      /* Back to Blue */
+  );
+  opacity: 0.85;
+}
+
+/* Circular progress indicator */
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+.progress-ring-fill {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease-out;
+}
