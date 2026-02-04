@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { v4 as uuidv4 } from 'uuid';
+import { AuthGuard } from './auth.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -171,6 +172,10 @@ const WORKFLOW_TEMPLATES = {
     }
   }
 };
+
+// Workflows storage for CRUD
+const workflows = [];
+
 
 // ============================================================================
 // SESSION MANAGEMENT
@@ -718,6 +723,90 @@ app.get('/api/templates', (req, res) => {
     destination: { type: t.destination.type, name: t.destination.name, icon: t.destination.icon }
   }));
   res.json(templates);
+});
+
+// CRUD: list applicable workflows (use guard + query params for user role/env/cost; fallback to templates if none stored)
+app.get('/api/workflows', (req, res) => {
+  const { role, env, cost } = req.query;
+  if (!role || !env || cost === undefined) {
+    return res.status(400).json({ error: 'Role, environment, and cost required in query' });
+  }
+  // Use evaluate for specific error reason on read too (canAccess bool still available for reuse)
+  const evalResult = AuthGuard.evaluateWorkflowCreation(role, env, cost);
+  if (!evalResult.allowed) {
+    return res.status(403).json({ error: evalResult.reason || 'Insufficient permissions for this role/environment/cost' });
+  }
+  // Return stored (created) workflows; fallback to templates as applicable if empty (minimal)
+  const applicable = workflows.length ? workflows : Object.values(WORKFLOW_TEMPLATES).map(t => ({
+    id: t.id,
+    name: t.name,
+    description: t.description,
+    environment: env, // simulated for user
+    cost: 50 + Math.random() * 200, // simulated capacity-based
+    status: 'available'
+  }));
+  res.json({ workflows: applicable });
+});
+
+// CRUD: get single workflow details (validate guard via query; check stored or templates)
+app.get('/api/workflows/:id', (req, res) => {
+  const { role, env, cost } = req.query;
+  const id = req.params.id;
+  if (!role || !env || cost === undefined) {
+    return res.status(400).json({ error: 'Role, environment, and cost required in query' });
+  }
+  // Use evaluate for specific error reason on read too (canAccess bool still available for reuse)
+  const evalResult = AuthGuard.evaluateWorkflowCreation(role, env, cost);
+  if (!evalResult.allowed) {
+    return res.status(403).json({ error: evalResult.reason || 'Insufficient permissions for this role/environment/cost' });
+  }
+  // Find in stored or fallback to template
+  let workflow = workflows.find(w => w.id === id);
+  if (!workflow) {
+    const template = WORKFLOW_TEMPLATES[id];
+    if (template) {
+      workflow = {
+        id: template.id,
+        name: template.name,
+        description: template.description,
+        environment: env,
+        cost: 100, // simulated
+        status: 'available'
+      };
+    }
+  }
+  if (!workflow) {
+    return res.status(404).json({ error: 'Workflow not found' });
+  }
+  res.json({ workflow });
+});
+
+app.post('/api/workflows', (req, res) => {
+  const { role, env, cost, workflowId, config } = req.body;
+  if (!role || !env || cost === undefined) {
+    return res.status(400).json({ error: 'Role, environment, and cost required in request' });
+  }
+  // Use structured eval for create (keep same error behavior)
+  const evalResult = AuthGuard.evaluateWorkflowCreation(role, env, cost);
+  if (!evalResult.allowed) {
+    return res.status(403).json({ error: evalResult.reason || 'Insufficient permissions for this role/environment/cost' });
+  }
+  // Minimal creation simulation + store
+  const template = workflowId ? WORKFLOW_TEMPLATES[workflowId] : null;
+  const workflow = {
+    id: uuidv4(),
+    templateId: workflowId || null,
+    name: template ? template.name : 'Custom Workflow',
+    description: template ? template.description : '',
+    status: 'activated',
+    environment: env,
+    role: role,
+    cost: parseFloat(cost),
+    config: config || {},
+    createdAt: new Date().toISOString()
+  };
+  workflows.push(workflow);
+  res.json({ success: true, workflow });
 });
 
 // ============================================================================
